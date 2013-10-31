@@ -9,6 +9,15 @@ void newgame (void); // função para iniciar um novo jogo.
 void level1 (void); // função para iniciar a primeira fase do jogo.
 void print_borders (void); // função para imprimir as bordas do mapa atual.
 
+// funções de movimento.
+void movearcher_up (void);
+void movearcher_down (void);
+void movearcher_right (void);
+void movearcher_left (void);
+
+// variáveis globais.
+int Garcher_x, Garcher_y;
+
 int main () {
     switch(menu()) {
     case 1:
@@ -76,8 +85,8 @@ void newgame (void) {
 }
 
 void level1 (void) {
-    int score, arrows, balloons=15, cont1, cont2, wline=6;
-    char map[24][80], archer[4][8], arrow[] = "-->", balloon[2][2];
+    int score, arrows, balloons=15, cont1, cont2, archer_x, archer_y;
+    char map[24][80], archer[4][8], arrow[] = "-->", balloon[2][2], key;
     // construindo o arqueiro.
     for (cont1=0; cont1<3; cont1++) {
         for (cont2=0; cont2<8; cont2++) {
@@ -98,13 +107,37 @@ void level1 (void) {
 
     print_borders();
 
+    // escrevendo o arqueiro na tela.
+    Garcher_x = 2;
+    Garcher_y = 10;
+    archer_x = Garcher_x;
+    archer_y = Garcher_y;
     for (cont1=0; cont1<4; cont1++) {
-        gotoxy(2, wline);
+        gotoxy(archer_x, archer_y);
         for (cont2=0; cont2<8; cont2++) {
             printf("%c", archer[cont1][cont2]);
         }
-        wline++;
+        archer_y++;
     }
+    key = getch();
+    do {
+        switch (key) {
+        case 72: // seta para cima.
+            movearcher_up();
+            break;
+        case 80: // seta para baixo.
+            movearcher_down();
+            break;
+        case 77: // seta para a direita.
+            movearcher_right();
+            break;
+        case 75: // seta para a esquerda.
+            movearcher_left();
+            break;
+        }
+        key = getch();
+        printf("%i", key);
+    } while (key != 27);
 }
 
 void print_borders (void) {
@@ -129,4 +162,37 @@ void print_borders (void) {
             printf("%c", map[cont1][cont2]);
         }
     }
+}
+
+
+void movearcher_up (void) {
+    int cont1, cont2, archer_x, archer_y;
+    char archer[4][8];
+    if (Garcher_y-1 > 3) {
+        strcpy(archer[0], "~O |\\   ");
+        strcpy(archer[1], " |<| >->");
+        strcpy(archer[2], " | |/   ");
+        strcpy(archer[3], "/ \\     ");
+        system("cls");
+        print_borders();
+        Garcher_y--;
+        archer_x = Garcher_x;
+        archer_y = Garcher_y;
+        for (cont1=0; cont1<4; cont1++) {
+            gotoxy(archer_x, archer_y);
+            for (cont2=0; cont2<8; cont2++) {
+                printf("%c", archer[cont1][cont2]);
+            }
+            archer_y++;
+        }
+    }
+}
+void movearcher_down (void) {
+
+}
+void movearcher_right (void){
+
+}
+void movearcher_left (void) {
+
 }
