@@ -1,30 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-//#include <conio.h>
-//#include <Windows.h>
 #include <string.h>
+
+// Bibliotecas para Windows (comentar caso o sistema seja Linux).
+#include <conio.h>
+#include <Windows.h>
+
+/* ADAPTAÇÃO PARA LINUX
+=====================================================
 #include <termios.h> // função 'getch' para linux
 
 // Adaptação da função 'getch' para linux.
 static struct termios old, new;
 
-/* Initialize new terminal i/o settings */
+// Initialize new terminal i/o settings
 void initTermios(int echo)
 {
-  tcgetattr(0, &old); /* grab old terminal i/o settings */
-  new = old; /* make new settings same as old settings */
-  new.c_lflag &= ~ICANON; /* disable buffered i/o */
-  new.c_lflag &= echo ? ECHO : ~ECHO; /* set echo mode */
-  tcsetattr(0, TCSANOW, &new); /* use these new terminal i/o settings now */
+  tcgetattr(0, &old); // grab old terminal i/o settings
+  new = old; // make new settings same as old settings
+  new.c_lflag &= ~ICANON; // disable buffered i/o
+  new.c_lflag &= echo ? ECHO : ~ECHO; // set echo mode
+  tcsetattr(0, TCSANOW, &new); // use these new terminal i/o settings now
 }
 
-/* Restore old terminal i/o settings */
+// Restore old terminal i/o settings
 void resetTermios(void)
 {
   tcsetattr(0, TCSANOW, &old);
 }
 
-/* Read 1 character - echo defines echo mode */
+// Read 1 character - echo defines echo mode
 char getch_(int echo)
 {
   char ch;
@@ -34,18 +39,18 @@ char getch_(int echo)
   return ch;
 }
 
-/* Read 1 character without echo */
+// Read 1 character without echo
 char getch(void)
 {
   return getch_(0);
 }
 
-/* Read 1 character with echo */
+// Read 1 character with echo
 char getche(void)
 {
   return getch_(1);
 }
-// ------------------------------
+============================================ */
 
 void gotoxy (int x, int y); // função para posicionar o cursor na tela, na posição desejada.
 int menu (void); // função para inicializar o menu principal do jogo.
@@ -68,11 +73,11 @@ int main () {
 }
 
 void gotoxy (int x, int y) {
-//	COORD coord = {0, 0};
-//	coord.X = x;
-//	coord.Y = y;
-//	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-    printf("%c[%d;%df",0x1B,y,x);
+	COORD coord = {0, 0};
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+//    printf("%c[%d;%df",0x1B,y,x); // Função gotoxy para Linux.
 }
 
 int menu (void) {
@@ -129,7 +134,7 @@ void newgame (void) {
 
 void level1 (void) {
     int score, arrows, balloons=15, cont1, cont2, archer_x, archer_y;
-    char map[24][80], archer[3][8], arrow[] = "-->", balloon[2][2], key;
+    char map[24][80], archer[4][8], arrow[] = "-->", balloon[2][2], key;
     // construindo o arqueiro.
     for (cont1=0; cont1<3; cont1++) {
         for (cont2=0; cont2<8; cont2++) {
@@ -204,7 +209,7 @@ void print_borders (void) {
 
 void movearcher_up (void) {
     int cont1, cont2, archer_x, archer_y;
-    char archer[3][8];
+    char archer[4][8];
     if (Garcher_y-1 > 4) {
         strcpy(archer[0], "~O |\\   ");
         strcpy(archer[1], " |<| >->");
@@ -228,8 +233,8 @@ void movearcher_up (void) {
 }
 void movearcher_down (void) {
     int cont1, cont2, archer_x, archer_y;
-    char archer[3][8];
-    if (Garcher_y+1 < 21) {
+    char archer[4][8];
+    if (Garcher_y+1 < 20) {
         strcpy(archer[0], "~O |\\   ");
         strcpy(archer[1], " |<| >->");
         strcpy(archer[2], " | |/   ");
