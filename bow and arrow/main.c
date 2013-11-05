@@ -136,7 +136,6 @@ void level1 (void) {
             break;
         }
         key = getch();
-        printf("%i", key);
     } while (key != 27);
 }
 
