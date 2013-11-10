@@ -62,6 +62,8 @@ void print_borders (void); // função para imprimir as bordas do mapa atual.
 void movearcher_up (void);
 void movearcher_down (void);
 
+void shoot (void); // função de disparo de flecha.
+
 // variáveis globais.
 int Garcher_x, Garcher_y;
 
@@ -134,7 +136,7 @@ void newgame (void) {
 
 void level1 (void) {
     int score, arrows, balloons=15, cont1, cont2, archer_x, archer_y;
-    char map[24][80], archer[4][8], arrow[] = "-->", balloon[2][2], key;
+    char map[24][80], archer[4][8], arrow[] = "-->", balloon[3][3], key;
     // construindo o arqueiro.
     for (cont1=0; cont1<3; cont1++) {
         for (cont2=0; cont2<8; cont2++) {
@@ -176,9 +178,12 @@ void level1 (void) {
         case 115: // tecla 's', que move o arqueiro para baixo.
             movearcher_down();
             break;
+        case 32: // barra de espaço, que aciona a função de disparo da flecha.
+            shoot();
+            break;
         }
         key = getch();
-       // printf("%i", key);
+        //printf("%i", key);
     } while (key != 27);
 }
 
@@ -210,7 +215,7 @@ void print_borders (void) {
 void movearcher_up (void) {
     int cont1, cont2, archer_x, archer_y;
     char archer[4][8];
-    if (Garcher_y-1 > 4) {
+    if (Garcher_y-1 > 3) {
         strcpy(archer[0], "~O |\\   ");
         strcpy(archer[1], " |<| >->");
         strcpy(archer[2], " | |/   ");
@@ -253,5 +258,33 @@ void movearcher_down (void) {
             }
             archer_y++;
         }
+    }
+}
+void shoot (void) {
+    int arrow_y, arrow_x=11;
+    char key;
+    arrow_y = Garcher_y+1;
+    while (arrow_x < 77) {
+        gotoxy(arrow_x, arrow_y);
+        printf("-->");
+        gotoxy(arrow_x-1, arrow_y);
+        printf(" ");
+        arrow_x++;
+        if (arrow_x == 77) {
+            gotoxy(arrow_x-1, arrow_y);
+            printf("   ");
+        }
+        if (kbhit()) {
+            key = getch();
+            switch (key) {
+                 case 119: // tecla 'w', que move o arqueiro para cima.
+                    movearcher_up();
+                    break;
+                case 115: // tecla 's', que move o arqueiro para baixo.
+                    movearcher_down();
+                    break;
+            }
+        }
+        Sleep(10);
     }
 }
