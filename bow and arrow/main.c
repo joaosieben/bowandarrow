@@ -65,7 +65,7 @@ void movearcher_down (void);
 void shoot (void); // função de disparo de flecha.
 
 // variáveis globais.
-int Garcher_x, Garcher_y;
+int Garcher_x, Garcher_y, arrows=15;
 
 int main () {
     switch(menu()) {
@@ -135,8 +135,22 @@ void newgame (void) {
 }
 
 void level1 (void) {
-    int score, arrows, balloons=15, cont1, cont2, archer_x, archer_y;
+    int score=0, balloons=15, cont1, cont2, archer_x, archer_y;
     char map[24][80], archer[4][8], arrow[] = "-->", balloon[3][3], key;
+    // informações do nível atual.
+     print_borders();
+    gotoxy(29, 0);
+    printf(">  BOW AND ARROW  <");
+    gotoxy(35, 1);
+    printf("LEVEL 1");
+    gotoxy(34, 2);
+    printf("BALLOONS");
+    gotoxy(2, 1);
+    printf("SCORE: %i", score);
+    gotoxy(2, 2);
+    printf("HIGH SCORE: 9999");
+    gotoxy(68, 2);
+    printf("Flechas: %i", arrows);
     // construindo o arqueiro.
     for (cont1=0; cont1<3; cont1++) {
         for (cont2=0; cont2<8; cont2++) {
@@ -153,9 +167,6 @@ void level1 (void) {
     strcpy(balloon[1], "\ /");
     strcpy(balloon[2], " $ ");
 
-    system("cls");
-
-    print_borders();
 
     // escrevendo o arqueiro na tela.
     Garcher_x = 2;
@@ -264,7 +275,8 @@ void shoot (void) {
     int arrow_y, arrow_x=11;
     char key;
     arrow_y = Garcher_y+1;
-    while (arrow_x < 77) {
+    arrows--;
+    while (arrow_x < 77 && arrows >= 0) {
         gotoxy(arrow_x, arrow_y);
         printf("-->");
         gotoxy(arrow_x-1, arrow_y);
@@ -285,6 +297,12 @@ void shoot (void) {
                     break;
             }
         }
+        if (arrows < 10) {
+            gotoxy(77, 2);
+            printf("  ");
+        }
+        gotoxy(77, 2);
+        printf("%i", arrows);
         Sleep(10);
     }
 }
