@@ -65,7 +65,8 @@ void movearcher_down (void);
 void shoot (void); // função de disparo de flecha.
 
 // variáveis globais.
-int Garcher_x, Garcher_y, arrows=15;
+int Garcher_x, Garcher_y, arrows=15, balloons=15;
+char map[24][80];
 
 int main () {
     switch(menu()) {
@@ -83,27 +84,26 @@ void gotoxy (int x, int y) {
 }
 
 int menu (void) {
-	char map[14][80];
+	char mapmenu[14][80];
 	int opt;
 	int cont1, cont2;
 	for (cont1=0; cont1<14; cont1++) { // laço que inicializa o array do mapa de caracteres, preenchendo-o com espaços em branco.
         for (cont2=0; cont2<80; cont2++) {
-            map[cont1][cont2]=' ';
+            mapmenu[cont1][cont2]=' ';
         }
 	}
     for (cont1=1; cont1<79; cont1++) { // laço para preencher o array do mapa de caracteres com os hífens que constituem o mapa.
-        map[0][cont1] = '-';
-        map[13][cont1] = '-';
-        map[4][cont1] = '-';
+        mapmenu[0][cont1] = '-';
+        mapmenu[13][cont1] = '-';
+        mapmenu[4][cont1] = '-';
     }
     for (cont1=1; cont1<13; cont1++) { // laço para preencher o array do mapa de caracteres com os pipes que constituem o mapa.
-        map[cont1][0] = '|';
-        map[cont1][79] = '|';
-        //map[cont1][79]='\0';
+        mapmenu[cont1][0] = '|';
+        mapmenu[cont1][79] = '|';
     }
     for (cont1=0; cont1<14; cont1++) {
         for (cont2=0; cont2<80; cont2++) {
-            printf("%c", map[cont1][cont2]);
+            printf("%c", mapmenu[cont1][cont2]);
         }
     }
     gotoxy(31, 2);
@@ -135,10 +135,10 @@ void newgame (void) {
 }
 
 void level1 (void) {
-    int score=0, balloons=15, cont1, cont2, archer_x, archer_y;
-    char map[24][80], archer[4][8], arrow[] = "-->", balloon[3][3], key;
+    int score=0, cont1, cont2, cont3, archer_x, archer_y, x, y;
+    char archer[4][8], arrow[] = "-->", balloon[3][3], key, firstline[80];
     // informações do nível atual.
-     print_borders();
+    print_borders();
     gotoxy(29, 0);
     printf(">  BOW AND ARROW  <");
     gotoxy(35, 1);
@@ -164,9 +164,24 @@ void level1 (void) {
 
     // construindo o balão.
     strcpy(balloon[0], "/~\\");
-    strcpy(balloon[1], "\ /");
+    strcpy(balloon[1], "\\ /");
     strcpy(balloon[2], " $ ");
 
+    // escrevendo os balões na matriz principal.
+    x=20;
+    y=15;
+    for (cont1=1; cont1<=15; cont1++) {
+        for (cont2=0; cont2<3; cont2++) {
+            for (cont3=0; cont3<3; cont3++) {
+                map[x][y]=balloon[cont2][cont3];
+                y++;
+            }
+            x++;
+            y-=3;
+        }
+        y+=4;
+        x-=3;
+    }
 
     // escrevendo o arqueiro na tela.
     Garcher_x = 2;
@@ -180,26 +195,70 @@ void level1 (void) {
         }
         archer_y++;
     }
-    key = getch();
-    do {
-        switch (key) {
-        case 119: // tecla 'w', que move o arqueiro para cima.
-            movearcher_up();
-            break;
-        case 115: // tecla 's', que move o arqueiro para baixo.
-            movearcher_down();
-            break;
-        case 32: // barra de espaço, que aciona a função de disparo da flecha.
-            shoot();
-            break;
+
+    // escrevendo o mapa da fase atual.
+    x = 10;
+    y = 4;
+    gotoxy(x, y);
+    for (cont1=4; cont1<23; cont1++) {
+        for (cont2=10; cont2<78; cont2++) {
+            printf("%c", map[cont1][cont2]);
         }
-        key = getch();
-        //printf("%i", key);
-    } while (key != 27);
+        y++;
+        gotoxy(x, y);
+    }
+
+    // salvando a primeira linha jogável da matriz (necessário para o efeito de movimento dos balões)
+    for (cont1 = 10; cont1 < 78; cont1++)
+        firstline[cont1] = map[4][cont1];
+
+    while (key != 27) {
+        if (kbhit()) {
+            key = getch();
+            switch (key) {
+            case 119: // tecla 'w', que move o arqueiro para cima.
+                movearcher_up();
+                movearcher_up();
+                break;
+            case 115: // tecla 's', que move o arqueiro para baixo.
+                movearcher_down();
+                movearcher_down();
+                break;
+            case 32: // barra de espaço, que aciona a função de disparo da flecha.
+                shoot();
+                break;
+            }
+        }
+
+       for (cont1 = 4; cont1 < 23; cont1++) {
+            for (cont2 = 10; cont2 < 78; cont2++) {
+                if (cont1 == 22)
+                    map[cont1][cont2] = firstline[cont2];
+                else
+                    map[cont1][cont2] = map[cont1+1][cont2];
+            }
+       }
+
+        // salvando a primeira linha da matriz principal no vetor 'firstline'.
+       for (cont1 = 10; cont1 < 78; cont1++)
+            firstline[cont1] = map[4][cont1];
+
+        x = 10;
+        y = 4;
+        gotoxy(x, y);
+        for (cont1=4; cont1<23; cont1++) {
+            for (cont2=10; cont2<78; cont2++) {
+                printf("%c", map[cont1][cont2]);
+            }
+            y++;
+            gotoxy(x, y);
+        }
+
+        Sleep(500);
+    }
 }
 
 void print_borders (void) {
-    char map[24][80];
     int cont1, cont2;
     for (cont1=0; cont1<24; cont1++) { // laço que inicializa o array do mapa de caracteres, preenchendo-o com espaços em branco.
         for (cont2=0; cont2<80; cont2++) {
