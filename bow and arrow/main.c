@@ -63,9 +63,10 @@ void movearcher_up (void);
 void movearcher_down (void);
 
 void shoot (void); // função de disparo de flecha.
+void destroy_balloon (int arrow_x, int arrow_y); // função que trata a colisão entre a flecha e o balão.
 
 // variáveis globais.
-int Garcher_x, Garcher_y, arrows=15, balloons=15;
+int Garcher_x, Garcher_y, score = 0, arrows = 15, balloons = 15, shoot_flag = 0, endgame = 0;
 char map[24][80];
 
 int main () {
@@ -87,6 +88,7 @@ int menu (void) {
 	char mapmenu[14][80];
 	int opt;
 	int cont1, cont2;
+	system("cls");
 	for (cont1=0; cont1<14; cont1++) { // laço que inicializa o array do mapa de caracteres, preenchendo-o com espaços em branco.
         for (cont2=0; cont2<80; cont2++) {
             mapmenu[cont1][cont2]=' ';
@@ -135,7 +137,7 @@ void newgame (void) {
 }
 
 void level1 (void) {
-    int score=0, cont1, cont2, cont3, archer_x, archer_y, x, y;
+    int cont1, cont2, cont3, archer_x, archer_y, x, y, arrow_x, arrow_y, flag_final_balao = 0;
     char archer[4][8], arrow[] = "-->", balloon[3][3], key, firstline[80];
     // informações do nível atual.
     print_borders();
@@ -212,7 +214,9 @@ void level1 (void) {
     for (cont1 = 10; cont1 < 78; cont1++)
         firstline[cont1] = map[4][cont1];
 
-    while (key != 27) {
+    while (!endgame) {
+        gotoxy(9, 1);
+        printf("%i", score);
         if (kbhit()) {
             key = getch();
             switch (key) {
@@ -248,13 +252,70 @@ void level1 (void) {
         gotoxy(x, y);
         for (cont1=4; cont1<23; cont1++) {
             for (cont2=10; cont2<78; cont2++) {
+                if (map[cont1][cont2] == '>') {
+                    arrow_x = cont2;
+                    arrow_y = cont1;
+                }
                 printf("%c", map[cont1][cont2]);
             }
             y++;
             gotoxy(x, y);
         }
+        if (shoot_flag) {
+                //printf("%i", arrow_x+1);
+            if (map[arrow_y+1][arrow_x+4] == '/' || map[arrow_y+1][arrow_x+4] == '\\') {
+                destroy_balloon(arrow_x+4, arrow_y);
+            }
+            for (cont1 = 1; cont1 <= 4; cont1++) {
+                if (map[arrow_y+1][arrow_x+cont1] == '$')
+                    flag_final_balao = cont1;
+            }
+            map[arrow_y][arrow_x] = ' ';
+            map[arrow_y][arrow_x-1] = ' ';
+            map[arrow_y][arrow_x-2] = ' ';
+            map[arrow_y+1][arrow_x+2] = '-';
+            map[arrow_y+1][arrow_x+3] = '-';
+            map[arrow_y+1][arrow_x+4] = '>';
+            if (flag_final_balao) {
+                map[arrow_y+1][arrow_x+flag_final_balao] = '$';
 
-        Sleep(500);
+                flag_final_balao = 0;
+                map[arrow_y+1][arrow_x+2] = ' ';
+                map[arrow_y+1][arrow_x+4] = '-';
+                map[arrow_y+1][arrow_x+5] = '-';
+                map[arrow_y+1][arrow_x+6] = '>';
+            }
+            if (arrow_x+1 > 75) {
+                map[arrow_y][arrow_x] = ' ';
+                map[arrow_y][arrow_x-1] = ' ';
+                map[arrow_y][arrow_x-2] = ' ';
+                shoot_flag = 0;
+
+                for (cont1 = 4; cont1 < 23; cont1++) {
+                    if (map[cont1][77] == '-')
+                        map[cont1][77] = ' ';
+                }
+                if (arrows == 0)
+                    endgame = 1;
+            }
+        }
+        Sleep(10);
+    }
+    if (arrows > 0) {
+        for (cont1 = 0; cont1 < arrows; cont1++)
+            score+=50;
+    }
+    system("cls");
+    gotoxy(25, 7);
+    printf("FIM DE JOGO!");
+    gotoxy(25, 8);
+    printf("Seu score foi de %i pontos.", score);
+    gotoxy(25, 10);
+    printf("Pressione qualquer tecla para continuar.");
+    getch();
+    switch (menu()) {
+    case 1:
+        newgame();
     }
 }
 
@@ -331,37 +392,39 @@ void movearcher_down (void) {
     }
 }
 void shoot (void) {
-    int arrow_y, arrow_x=11;
+    int arrow_y, arrow_x=11, cont1, cont2;
     char key;
-    arrow_y = Garcher_y+1;
-    arrows--;
-    while (arrow_x < 77 && arrows >= 0) {
-        gotoxy(arrow_x, arrow_y);
-        printf("-->");
-        gotoxy(arrow_x-1, arrow_y);
-        printf(" ");
-        arrow_x++;
-        if (arrow_x == 77) {
-            gotoxy(arrow_x-1, arrow_y);
-            printf("   ");
-        }
-        if (kbhit()) {
-            key = getch();
-            switch (key) {
-                 case 119: // tecla 'w', que move o arqueiro para cima.
-                    movearcher_up();
-                    break;
-                case 115: // tecla 's', que move o arqueiro para baixo.
-                    movearcher_down();
-                    break;
-            }
-        }
+    if (!shoot_flag && arrows > 0) {
+        arrow_y = Garcher_y+2;
+        arrows--;
+        shoot_flag = 1;
+        map[arrow_y][arrow_x] = '-';
+        map[arrow_y][arrow_x+1] = '-';
+        map[arrow_y][arrow_x+2] = '>';
         if (arrows < 10) {
             gotoxy(77, 2);
             printf("  ");
         }
         gotoxy(77, 2);
         printf("%i", arrows);
-        Sleep(10);
     }
+}
+
+void destroy_balloon (int arrow_x, int arrow_y) {
+    int cont1, cont2;
+    if (map[arrow_y][arrow_x] == '\\')
+        arrow_y--;
+    map[arrow_y+1][arrow_x-2] = ' ';
+    map[arrow_y+1][arrow_x-1] = ' ';
+    map[arrow_y+1][arrow_x] = ' ';
+    map[arrow_y+2][arrow_x-2] = ' ';
+    map[arrow_y+2][arrow_x-1] = ' ';
+    map[arrow_y+2][arrow_x] = ' ';
+    map[arrow_y+3][arrow_x-2] = ' ';
+    map[arrow_y+3][arrow_x-1] = ' ';
+    map[arrow_y+3][arrow_x] = ' ';
+    balloons--;
+    score+=100;
+    if (balloons == 0)
+        endgame = 1;
 }
