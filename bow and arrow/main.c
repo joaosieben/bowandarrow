@@ -53,10 +53,15 @@ char getche(void)
 ============================================ */
 
 void gotoxy (int x, int y); // função para posicionar o cursor na tela, na posição desejada.
+void start (void); // função que controla a tela de inicialização do jogo.
 int menu (void); // função para inicializar o menu principal do jogo.
 void newgame (void); // função para iniciar um novo jogo.
 void level1 (void); // função para iniciar a primeira fase do jogo.
 void print_borders (void); // função para imprimir as bordas do mapa atual.
+int verify_score ();
+void show_scores (void); // função que mostra na tela os 5 maiores placares do jogo.
+void add_score (void); // função que adiciona o score do jogador ao arquivo highscores.bin.
+int get_higher_score (void); // função que retorna o score mais alto do arquivo highscores.bin.
 
 // funções de movimento.
 void movearcher_up (void);
@@ -65,15 +70,17 @@ void movearcher_down (void);
 void shoot (void); // função de disparo de flecha.
 void destroy_balloon (int arrow_x, int arrow_y); // função que trata a colisão entre a flecha e o balão.
 
+typedef struct tipo_jogador {
+    char nome[30];
+    int score;
+} TIPO_JOGADOR;
+
 // variáveis globais.
-int Garcher_x, Garcher_y, score = 0, arrows = 15, balloons = 15, shoot_flag = 0, endgame = 0;
-char map[24][80];
+int Garcher_x, Garcher_y, score, arrows, balloons, shoot_flag, endgame;
+char map[24][80], firstline[80];
 
 int main () {
-    switch(menu()) {
-    case 1:
-        newgame();
-    }
+    start();
 }
 
 void gotoxy (int x, int y) {
@@ -82,6 +89,17 @@ void gotoxy (int x, int y) {
 	coord.Y = y;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 //    printf("%c[%d;%df",0x1B,y,x); // Função gotoxy para Linux.
+}
+
+void start (void) {
+    switch(menu()) {
+    case 1:
+        newgame();
+        break;
+    case 2:
+        show_scores();
+        break;
+    }
 }
 
 int menu (void) {
@@ -138,7 +156,13 @@ void newgame (void) {
 
 void level1 (void) {
     int cont1, cont2, cont3, archer_x, archer_y, x, y, arrow_x, arrow_y, flag_final_balao = 0;
-    char archer[4][8], arrow[] = "-->", balloon[3][3], key, firstline[80];
+    char archer[4][8], arrow[] = "-->", balloon[3][3], key;
+    score = 0;
+    arrows = 15;
+    balloons = 15;
+    shoot_flag = 0;
+    endgame = 0;
+    fflush(stdin);
     // informações do nível atual.
     print_borders();
     gotoxy(29, 0);
@@ -150,7 +174,7 @@ void level1 (void) {
     gotoxy(2, 1);
     printf("SCORE: %i", score);
     gotoxy(2, 2);
-    printf("HIGH SCORE: 9999");
+    printf("HIGH SCORE: %i", get_higher_score());
     gotoxy(68, 2);
     printf("Flechas: %i", arrows);
     // construindo o arqueiro.
@@ -214,7 +238,7 @@ void level1 (void) {
     for (cont1 = 10; cont1 < 78; cont1++)
         firstline[cont1] = map[4][cont1];
 
-    while (!endgame) {
+    do {
         gotoxy(9, 1);
         printf("%i", score);
         if (kbhit()) {
@@ -299,8 +323,8 @@ void level1 (void) {
                     endgame = 1;
             }
         }
-        Sleep(10);
-    }
+        Sleep(100);
+    } while (!endgame);
     if (arrows > 0) {
         for (cont1 = 0; cont1 < arrows; cont1++)
             score+=50;
@@ -313,10 +337,9 @@ void level1 (void) {
     gotoxy(25, 10);
     printf("Pressione qualquer tecla para continuar.");
     getch();
-    switch (menu()) {
-    case 1:
-        newgame();
-    }
+    if (verify_score())
+        add_score();
+    start();
 }
 
 void print_borders (void) {
@@ -342,7 +365,6 @@ void print_borders (void) {
     }
 }
 
-
 void movearcher_up (void) {
     int cont1, cont2, archer_x, archer_y;
     char archer[4][8];
@@ -367,6 +389,7 @@ void movearcher_up (void) {
         }
     }
 }
+
 void movearcher_down (void) {
     int cont1, cont2, archer_x, archer_y;
     char archer[4][8];
@@ -391,6 +414,7 @@ void movearcher_down (void) {
         }
     }
 }
+
 void shoot (void) {
     int arrow_y, arrow_x=11, cont1, cont2;
     char key;
@@ -423,8 +447,119 @@ void destroy_balloon (int arrow_x, int arrow_y) {
     map[arrow_y+3][arrow_x-2] = ' ';
     map[arrow_y+3][arrow_x-1] = ' ';
     map[arrow_y+3][arrow_x] = ' ';
+    if (arrow_y+3 > 22)
+        firstline[arrow_x-1] = ' ';
     balloons--;
     score+=100;
     if (balloons == 0)
         endgame = 1;
+}
+
+void show_scores (void) {
+    FILE *arq;
+    TIPO_JOGADOR jogador;
+    int x = 28, y = 4;
+    if (!(arq = fopen("highscores.bin", "rb"))) {
+        printf("Erro na abertura do arquivo.");
+    }
+    else {
+        system("cls");
+        gotoxy(35, y);
+        printf("HIGH SCORES");
+        y+=2;
+        gotoxy(x, y);
+        printf("Nome\t\tScore");
+        while (!feof(arq)) {
+            if (fread(&jogador, sizeof(TIPO_JOGADOR), 1, arq) == 1) {
+                y++;
+                gotoxy(x, y);
+                printf("%s\t\t%i\n", jogador.nome, jogador.score);
+            }
+        }
+        fclose(arq);
+        y+=3;
+        gotoxy(21, y);
+        printf("Pressione qualquer tecla para continuar.");
+        getch();
+        start();
+    }
+}
+
+int verify_score (void) {
+    FILE *arq;
+    TIPO_JOGADOR jogador;
+    if (!(arq = fopen("highscores.bin", "rb"))) {
+        printf("Erro na abertura do arquivo.");
+    }
+    else {
+        while (!feof(arq)) {
+            if (fread(&jogador, sizeof(TIPO_JOGADOR), 1, arq) == 1) {
+                if (score > jogador.score) {
+                    fclose(arq);
+                    return 1;
+                }
+            }
+            else {
+                printf("Erro na leitura do arquivo.");
+            }
+        }
+    }
+    return 0;
+}
+
+void add_score (void) {
+    FILE *arq;
+    TIPO_JOGADOR jogador[5];
+    int cont1, cont2, flag = 0;
+    char nome[30];
+    system("cls");
+    fflush(stdin);
+    gotoxy(21, 6);
+    printf("Parabens! Sua pontuacao esta entre as 5 melhores.");
+    gotoxy(21, 7);
+    printf("Informe seu nome: ");
+    gets(nome);
+    if (!(arq = fopen("highscores.bin", "rb"))) {
+        printf("Erro na abertura do arquivo.");
+    }
+    else {
+        if (fread(&jogador, sizeof(TIPO_JOGADOR), 5, arq) != 5) {
+            printf("Erro na leitura do arquivo.");
+        }
+        for (cont1 = 0; cont1 < 5; cont1++) {
+            if (score > jogador[cont1].score && flag == 0) {
+                for (cont2 = 4; cont2 < cont1; cont2--)
+                    jogador[cont2] = jogador[cont2-1];
+                jogador[cont1].score = score;
+                strcpy(jogador[cont1].nome, nome);
+                flag = 0;
+            }
+        }
+        fclose(arq);
+    }
+
+    if (!(arq = fopen("highscores.bin", "wb"))) {
+        printf("Erro na abertura do arquivo.");
+    }
+    else {
+        fflush(stdin);
+        if (fwrite(&jogador, sizeof(TIPO_JOGADOR), 5, arq) != 5) {
+            printf("Erro na gravacao dos dados.");
+        }
+        fclose(arq);
+    }
+}
+
+int get_higher_score (void) {
+    FILE *arq;
+    TIPO_JOGADOR jogador;
+    if (!(arq = fopen("highscores.bin", "rb"))) {
+        printf("Erro na leitura do arquivo.");
+    }
+    else {
+        if (fread(&jogador, sizeof(TIPO_JOGADOR), 1, arq) != 1)
+            printf("Erro na leitura do arquivo.");
+        fclose(arq);
+    }
+    return jogador.score;
 }
