@@ -1,56 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// Bibliotecas para Windows (comentar caso o sistema seja Linux).
 #include <conio.h>
 #include <Windows.h>
-
-/* ADAPTAÇÃO PARA LINUX
-=====================================================
-#include <termios.h> // função 'getch' para linux
-
-// Adaptação da função 'getch' para linux.
-static struct termios old, new;
-
-// Initialize new terminal i/o settings
-void initTermios(int echo)
-{
-  tcgetattr(0, &old); // grab old terminal i/o settings
-  new = old; // make new settings same as old settings
-  new.c_lflag &= ~ICANON; // disable buffered i/o
-  new.c_lflag &= echo ? ECHO : ~ECHO; // set echo mode
-  tcsetattr(0, TCSANOW, &new); // use these new terminal i/o settings now
-}
-
-// Restore old terminal i/o settings
-void resetTermios(void)
-{
-  tcsetattr(0, TCSANOW, &old);
-}
-
-// Read 1 character - echo defines echo mode
-char getch_(int echo)
-{
-  char ch;
-  initTermios(echo);
-  ch = getchar();
-  resetTermios();
-  return ch;
-}
-
-// Read 1 character without echo
-char getch(void)
-{
-  return getch_(0);
-}
-
-// Read 1 character with echo
-char getche(void)
-{
-  return getch_(1);
-}
-============================================ */
 
 void gotoxy (int x, int y); // função para posicionar o cursor na tela, na posição desejada.
 void start (void); // função que controla a tela de inicialização do jogo.
@@ -58,7 +10,7 @@ int menu (void); // função para inicializar o menu principal do jogo.
 void newgame (void); // função para iniciar um novo jogo.
 void level1 (void); // função para iniciar a primeira fase do jogo.
 void print_borders (void); // função para imprimir as bordas do mapa atual.
-int verify_score ();
+int verify_score (void); // função que verifica se o score do jogador está entre os 5 primeiros.
 void show_scores (void); // função que mostra na tela os 5 maiores placares do jogo.
 void add_score (void); // função que adiciona o score do jogador ao arquivo highscores.bin.
 int get_higher_score (void); // função que retorna o score mais alto do arquivo highscores.bin.
@@ -88,7 +40,6 @@ void gotoxy (int x, int y) {
 	coord.X = x;
 	coord.Y = y;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-//    printf("%c[%d;%df",0x1B,y,x); // Função gotoxy para Linux.
 }
 
 void start (void) {
