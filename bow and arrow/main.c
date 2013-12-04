@@ -237,7 +237,6 @@ void level1 (void) {
             gotoxy(x, y);
         }
         if (shoot_flag) {
-                //printf("%i", arrow_x+1);
             if (map[arrow_y+1][arrow_x+4] == '/' || map[arrow_y+1][arrow_x+4] == '\\') {
                 destroy_balloon(arrow_x+4, arrow_y);
             }
@@ -483,7 +482,7 @@ void add_score (void) {
                     jogador[cont2] = jogador[cont2-1];
                 jogador[cont1].score = score;
                 strcpy(jogador[cont1].nome, nome);
-                flag = 0;
+                flag = 1;
             }
         }
         fclose(arq);
