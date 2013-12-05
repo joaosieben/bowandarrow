@@ -410,7 +410,10 @@ void show_scores (void) {
     TIPO_JOGADOR jogador;
     int x = 28, y = 4;
     if (!(arq = fopen("highscores.bin", "rb"))) {
-        printf("Erro na abertura do arquivo.");
+        system("cls");
+        printf("\n\nErro na abertura do arquivo.\n\n");
+        system("pause");
+        start();
     }
     else {
         system("cls");
